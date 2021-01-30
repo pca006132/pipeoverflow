@@ -9,6 +9,7 @@ let posts = [{
     tags: [],
     replies: [],
     id: 0,
+    best: -1,
 }];
 let counter = 0;
 
@@ -53,10 +54,38 @@ module.exports = {
             content: content,
             tags: tags,
             id: id,
-            replies: []
+            replies: [],
+            best: -1
         };
         posts.push(post);
         return id;
-    }
+    },
+    add_reply: (id, author, images, content) => {
+        if (!posts[id]) {
+            return;
+        }
+        if (posts[id].best != -1) {
+            return;
+        }
+        let reply = {
+            author: author,
+            images: images,
+            content: content,
+            flagged: false
+        };
+        posts[id].replies.push(reply);
+    },
+    best_reply: (index, id) => {
+        if (!posts[id]) {
+            return;
+        }
+        if (posts[id].best != -1) {
+            return;
+        }
+        if (index < 0 || index >= posts[id].length) {
+            return;
+        }
+        posts[id].best = index;
+    },
 }
 
