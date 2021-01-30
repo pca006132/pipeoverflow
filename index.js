@@ -2,14 +2,12 @@ const express = require('express');
 const session = require('express-session');
 const bodyparser = require('body-parser');
 const Busboy = require('busboy');
-const fs = require('fs');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const mime = require('mime-types');
 const escapehtml = require('escape-html');
 
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+// local abstraction modules
+const auth = require('./auth');
+const storage = require('./storage');
 
 let app = express();
 
@@ -18,58 +16,21 @@ app.use(session({secret: 'foobar', resave: false, saveUninitialized: false}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use((req, res, next) => {
-//     if (req.user == null && req.path.indexOf('/upload.html') === 0) {
-//         res.redirect('/login.html');
-//     }
-//     next();
-// })
-app.use(express.static('public'));
+app.set('view engine', 'hbs')
 
-// just somehow substitute them with your fancy DB system!
-let users = {};
-let userList = [];
+auth.initPassport(passport);
+auth.createUsers({
+    'pca': 'password'
+});
 
-bcrypt.hash('password', saltRounds, (err, encrypted) => {
-    if (err) {
-        console.error(`bcrypt error: ${err}`);
-        exit(1);
+// Guard user APIs/Pages
+app.use((req, res, next) => {
+    if (req.user == null && req.path.indexOf('/user') === 0) {
+        res.redirect('/login.html');
     }
-    users['pca'] = encrypted;
-    userList.push('pca');
+    next();
 })
-
-passport.use(new LocalStrategy(
-    function (username, password, done) {
-        const user = users[username];
-        if (user) {
-            bcrypt.compare(password, user, (err, same) => {
-                if (err) {
-                    return done(err);
-                }
-                if (same) {
-                    return done(null, username);
-                } else {
-                    return done(null, false, {message: 'Incorrect password.'});
-                }
-            })
-        } else {
-            return done(null, false, {message: 'Incorrect username.'});
-        }
-    }
-));
-
-passport.serializeUser(function (user, done) {
-    done(null, userList.indexOf(user));
-});
-
-passport.deserializeUser(function (id, done) {
-    if (id >= 0 && id < userList.length) {
-        done(null, userList[id]);
-    } else {
-        done(null, false);
-    }
-});
+app.use(express.static('public'));
 
 app.post('/login.html',
     passport.authenticate('local', {
@@ -82,11 +43,10 @@ app.post('/login.html',
     }
 );
 
-let posts = [];
-let counter = 0;
-app.post('/upload.html',
+app.post('/user/upload.html',
     (req, res) => {
-        let files = [];
+        let images = [];
+        let tags = [];
         let content;
         let busboy = new Busboy({headers: req.headers});
         busboy.on('file', (field, file, _filename, _encoding, mimetype) => {
@@ -94,30 +54,29 @@ app.post('/upload.html',
                 file.resume();
                 return;
             }
-            const ext = mime.extension(mimetype);
-            const dest = `uploads/${counter++}-img.${ext}`;
-            files.push(dest);
-            file.pipe(fs.createWriteStream('./public/' + dest));
+            images.push(storage.add_image(file, mimetype));
         });
         busboy.on('field', function (fieldname, val) {
-            if (fieldname != 'content') {
-                return;
+            if (fieldname === 'content') {
+                content = escapehtml(val);
+            } else if (fieldname === 'tags') {
+                tags = content.split(' ');
             }
-            content = escapehtml(val);
         });
         busboy.on('finish', () => {
-            let post = {files: files, content: content};
-            posts.push(post);
-            console.log(post);
+            let id = storage.add_post(req.user, images, content, tags);
             res.status(200);
-            res.end();
+            res.redirect(`/posts/${id}`);
         });
         return req.pipe(busboy);
     })
 
 app.get('/posts', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({posts: posts}));
+    res.render('feed', {posts: storage.get_posts()});
+})
+
+app.get('/posts/:id', (req, res) => {
+    res.render('post', storage.get_post_with_id(req.params.id));
 })
 
 app.listen(3000, () => console.log('started at 3000'));

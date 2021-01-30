@@ -1,0 +1,14 @@
+<html>
+    <body>
+        <p>author: {{author}}</p>
+        <p>content: {{content}}</p>
+        <p>images:
+            {{#images}}
+                <img src="../{{.}}">
+            {{/images}}
+        </p>
+        {{#replies}}
+            <p>{{.}}</p>
+        {{/replies}}
+    </body>
+</html>
