@@ -5,26 +5,28 @@ const Busboy = require('busboy');
 const fs = require('fs');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const mime = require('mime-types');
+const escapehtml = require('escape-html');
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 let app = express();
 
-
 app.use(bodyparser.urlencoded({extended: false}));
 app.use(session({secret: 'foobar', resave: false, saveUninitialized: false}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-    if (req.user == null && req.path.indexOf('/upload.html') === 0) {
-        res.redirect('/login.html');
-    }
-    next();
-})
+// app.use((req, res, next) => {
+//     if (req.user == null && req.path.indexOf('/upload.html') === 0) {
+//         res.redirect('/login.html');
+//     }
+//     next();
+// })
 app.use(express.static('public'));
 
+// just somehow substitute them with your fancy DB system!
 let users = {};
 let userList = [];
 
@@ -80,35 +82,39 @@ app.post('/login.html',
     }
 );
 
-
+let posts = [];
 let counter = 0;
 app.post('/upload.html',
     (req, res) => {
+        let files = [];
+        let content;
         let busboy = new Busboy({headers: req.headers});
-        busboy.on('file', (field, file, filename, _, mimetype) => {
+        busboy.on('file', (field, file, _filename, _encoding, mimetype) => {
             if (field != 'picture' || !mimetype.startsWith('image')) {
-                res.status(400);
-                res.end();
+                file.resume();
+                return;
             }
-            const parts = filename.split('.');
-            const ext = parts[parts.length - 1];
-            const dest = `./public/uploads/${counter++}-img.${ext}`;
-            file.pipe(fs.createWriteStream(dest));
+            const ext = mime.extension(mimetype);
+            const dest = `uploads/${counter++}-img.${ext}`;
+            files.push(dest);
+            file.pipe(fs.createWriteStream('./public/' + dest));
         });
-        busboy.on('field', function (fieldname, val, _, _, _, _) {
+        busboy.on('field', function (fieldname, val) {
             if (fieldname != 'content') {
-                res.status(400);
-                res.end();
+                return;
             }
-            console.log(val);
+            content = escapehtml(val);
         });
         busboy.on('finish', () => {
-            console.log('upload complete');
-            res.writeHead(200, {'Connection': 'close'});
+            let post = {files: files, content: content};
+            posts.push(post);
+            console.log(post);
+            res.status(200);
             res.end();
         });
         return req.pipe(busboy);
     })
 
 app.listen(3000, () => console.log('started at 3000'));
+
 
