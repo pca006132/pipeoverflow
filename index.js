@@ -115,6 +115,11 @@ app.post('/upload.html',
         return req.pipe(busboy);
     })
 
+app.get('/posts', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({posts: posts}));
+})
+
 app.listen(3000, () => console.log('started at 3000'));
 
 
