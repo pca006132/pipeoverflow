@@ -51,7 +51,7 @@ app.post('/user/upload.html', (req, res) => {
     let content = '';
     let busboy = new Busboy({headers: req.headers});
     busboy.on('file', (field, file, _filename, _encoding, mimetype) => {
-        if (field != 'picture' || !mimetype.startsWith('image')) {
+        if (field != 'pictures' || !mimetype.startsWith('image')) {
             file.resume();
             return;
         }

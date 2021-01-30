@@ -1,0 +1,17 @@
+textarea {
+    padding-bottom: 2em !important;
+    margin-bottom: -1.8em !important;
+}
+
+.drop-zone__prompt {
+    width: 100%;
+    padding-left: 1em;
+    border-top: 1px solid #ced4da;
+    cursor: pointer;
+    position: relative;
+    display: block;
+}
+
+.drop-zone__input {
+    display: none;
+}
