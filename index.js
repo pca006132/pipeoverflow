@@ -69,13 +69,13 @@ app.post('/user/upload.html',
         busboy.on('finish', () => {
             let id = storage.add_post(title, req.user, images, content, tags);
             res.status(200);
-            res.redirect(`/posts/${id}`);
+            res.redirect(`/${id}`);
         });
         return req.pipe(busboy);
     })
 
 app.get('/', (req, res) => {
-    res.render('feed', {posts: storage.get_posts()});
+    res.render('index', {posts: storage.get_posts()});
 })
 
 app.get('/:id', (req, res) => {

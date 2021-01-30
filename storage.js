@@ -10,7 +10,7 @@ let posts = [{
     replies: [],
     id: 0,
 }];
-let counter = posts.length;
+let counter = 0;
 
 module.exports = {
     get_posts: (count = 10) => {
@@ -23,10 +23,10 @@ module.exports = {
                 content: v.content,
                 tags: v.tags,
                 id: v.id
-            }));
+            })).reverse();
         } else {
             let start = posts.length - count;
-            return posts.slice(start);
+            return posts.slice(start).reverse();
         }
     },
     get_post_with_id: id => {
@@ -45,7 +45,7 @@ module.exports = {
         return dest;
     },
     add_post: (title, author, images, content, tags) => {
-        let id = posts.length - 1;
+        let id = posts.length;
         let post = {
             title: title,
             author: author,

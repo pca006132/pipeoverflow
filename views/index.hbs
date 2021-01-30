@@ -1,0 +1,12 @@
+<html>
+    <body>
+        <a href="/user/upload.html">Upload!</a>
+        <br />
+        {{#each posts}}
+        <h3><a href="{{this.id}}">{{this.title}}</a></h3>
+        <p>author: {{this.author}}</p>
+        <p>content: {{this.content}}</p>
+        <hr />
+        {{/each}}
+    </body>
+</html>
