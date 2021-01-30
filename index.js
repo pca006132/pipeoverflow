@@ -69,7 +69,7 @@ app.post('/user/upload.html', (req, res) => {
     busboy.on('finish', () => {
         let id = storage.add_post(title, req.user, images, content, tags);
         res.status(200);
-        res.redirect(`/${id}`);
+        res.redirect(`/posts/${id}`);
     });
     return req.pipe(busboy);
 })
@@ -101,7 +101,7 @@ app.post('/user/reply', (req, res) => {
         }
         storage.add_reply(id, req.user, images, content);
         res.status(200);
-        res.redirect(`/${id}`);
+        res.redirect(`/posts/${id}`);
     });
     return req.pipe(busboy);
 })
@@ -127,7 +127,7 @@ app.get('/', (req, res) => {
     res.render('index', {posts: storage.get_posts()});
 })
 
-app.get('/:id', (req, res) => {
+app.get('/posts/:id', (req, res) => {
     res.render('post', storage.get_post_with_id(req.params.id));
 })
 
