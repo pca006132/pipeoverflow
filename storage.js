@@ -2,23 +2,27 @@ const fs = require('fs');
 const mime = require('mime-types');
 
 let posts = [{
+    title: 'some title',
     author: 'pca',
     images: [],
     content: 'something',
     tags: [],
-    replies: []
+    replies: [],
+    id: 0,
 }];
-let counter = 0;
+let counter = posts.length;
 
 module.exports = {
     get_posts: (count = 10) => {
         if (count > posts.length) {
             return posts.map(v => ({
                 // remove replies
+                title: v.title,
                 author: v.author,
                 images: v.images,
                 content: v.content,
-                tags: v.tags
+                tags: v.tags,
+                id: v.id
             }));
         } else {
             let start = posts.length - count;
@@ -40,17 +44,19 @@ module.exports = {
         fstream.pipe(fs.createWriteStream('./public/' + dest));
         return dest;
     },
-    add_post: (author, images, content, tags) => {
+    add_post: (title, author, images, content, tags) => {
+        let id = posts.length - 1;
         let post = {
+            title: title,
             author: author,
             images: images,
             content: content,
             tags: tags,
+            id: id,
             replies: []
         };
         posts.push(post);
-        // post ID
-        return posts.length - 1;
+        return id;
     }
 }
 

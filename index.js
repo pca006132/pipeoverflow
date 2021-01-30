@@ -47,7 +47,8 @@ app.post('/user/upload.html',
     (req, res) => {
         let images = [];
         let tags = [];
-        let content;
+        let title = '';
+        let content = '';
         let busboy = new Busboy({headers: req.headers});
         busboy.on('file', (field, file, _filename, _encoding, mimetype) => {
             if (field != 'picture' || !mimetype.startsWith('image')) {
@@ -61,21 +62,23 @@ app.post('/user/upload.html',
                 content = escapehtml(val);
             } else if (fieldname === 'tags') {
                 tags = content.split(' ');
+            } else if (fieldname === 'title') {
+                title = escapehtml(val);
             }
         });
         busboy.on('finish', () => {
-            let id = storage.add_post(req.user, images, content, tags);
+            let id = storage.add_post(title, req.user, images, content, tags);
             res.status(200);
             res.redirect(`/posts/${id}`);
         });
         return req.pipe(busboy);
     })
 
-app.get('/posts', (req, res) => {
+app.get('/', (req, res) => {
     res.render('feed', {posts: storage.get_posts()});
 })
 
-app.get('/posts/:id', (req, res) => {
+app.get('/:id', (req, res) => {
     res.render('post', storage.get_post_with_id(req.params.id));
 })
 
