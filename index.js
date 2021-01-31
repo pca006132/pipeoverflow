@@ -124,7 +124,7 @@ app.post('/user/best_reply', (req, res) => {
 })
 
 app.get('/', (req, res) => {
-    res.render('index', {posts: storage.get_posts()});
+    res.render('index', {posts: storage.get_posts(), visitor: req.user === undefined});
 })
 
 app.get('/posts/:id', (req, res) => {

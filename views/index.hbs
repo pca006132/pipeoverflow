@@ -62,7 +62,9 @@ title: Album example
         <p class="lead text-muted">Hottest plumbing questions in HK now.</p>
         <p>
           <a href="pricing.html" class="btn btn-primary my-2">Submit your question</a>
-          <a href="login.html" class="btn btn-secondary my-2">Register to answer</a>
+          {{#if visitor}}
+          <a href="login.html" class="btn btn-secondary my-2">Login to answer</a>
+          {{/if}}
         </p>
       </div>
     </div>
